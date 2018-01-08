@@ -43,17 +43,19 @@ namespace MorphanBotNetCore
                 Bitmap bitmap = new Bitmap(imageName);
                 using (Graphics graphics = Graphics.FromImage(bitmap))
                 {
-                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    graphics.SmoothingMode = SmoothingMode.HighQuality;
+                    graphics.InterpolationMode = InterpolationMode.High;
                     graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+                    graphics.CompositingQuality = CompositingQuality.HighQuality;
                     GraphicsPath path = new GraphicsPath();
                     StringFormat sf = new StringFormat();
-                    sf.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces | StringFormatFlags.FitBlackBox | StringFormatFlags.NoWrap;
-                    Font font = new Font(new FontFamily("Impact"), 72F, FontStyle.Bold, GraphicsUnit.Pixel);
+                    sf.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces | StringFormatFlags.FitBlackBox | StringFormatFlags.NoWrap | StringFormatFlags.NoClip;
+                    FontFamily fontFamily = new FontFamily("Impact");
+                    Font font = new Font(fontFamily, 72F, FontStyle.Regular, GraphicsUnit.Pixel);
                     List<string> wrapped = WrapText(graphics, text, bitmap.Width, font, sf);
                     while (font.Size > 0 && wrapped.Count > 2)
                     {
-                        font = new Font(new FontFamily("Impact"), font.Size - 12F, FontStyle.Bold, GraphicsUnit.Pixel);
+                        font = new Font(fontFamily, font.Size - 12F, FontStyle.Regular, GraphicsUnit.Pixel);
                         wrapped = WrapText(graphics, text, bitmap.Width, font, sf);
                     }
                     if (font.Size <= 0)
@@ -69,7 +71,7 @@ namespace MorphanBotNetCore
                     }
                     graphics.FillPath(new SolidBrush(Color.White), path);
                     // TODO: figure out outlining on Linux - Mono borks this right up!
-                    graphics.DrawPath(new Pen(Brushes.Black, 5) { LineJoin = LineJoin.Round }, path);
+                    //graphics.DrawPath(new Pen(Brushes.Black, 5) { LineJoin = LineJoin.Round }, path);
                 }
                 using (MemoryStream stream = new MemoryStream())
                 {
