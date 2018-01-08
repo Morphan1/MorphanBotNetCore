@@ -50,8 +50,6 @@ namespace MorphanBotNetCore
                 .BuildServiceProvider();
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
-            //commands.CreateCommand("say").Parameter("msg", ParameterType.Unparsed).Do(async (e) => await e.Channel.SendTTSMessage(e.Args[0]));
-
             Client.Log += async (e) =>
             {
                 Console.WriteLine($"[{e.Severity}] {e.Source}: {e.Message}");

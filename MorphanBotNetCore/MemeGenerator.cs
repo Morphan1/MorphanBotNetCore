@@ -70,7 +70,7 @@ namespace MorphanBotNetCore
                         y += (int)graphics.MeasureString(s, font).Height + 5;
                     }
                     graphics.FillPath(new SolidBrush(Color.White), path);
-                    // TODO: figure out outlining on Linux - Mono borks this right up!
+                    // TODO: figure out outlining on Linux - it's borked right up!
                     //graphics.DrawPath(new Pen(Brushes.Black, 5) { LineJoin = LineJoin.Round }, path);
                 }
                 using (MemoryStream stream = new MemoryStream())
