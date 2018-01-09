@@ -87,7 +87,7 @@ namespace MorphanBotNetCore
                 }
                 ICommandContext context = new SocketCommandContext(Client, message);
                 IResult result = await Commands.ExecuteAsync(context, argPos);
-                if (!result.IsSuccess)
+                if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     await context.Channel.SendMessageAsync(result.ErrorReason);
                 }
