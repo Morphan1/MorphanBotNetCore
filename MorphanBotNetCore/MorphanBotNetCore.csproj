@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.2" />
-    <PackageReference Include="YamlDotNet" Version="4.2.3" />
+    <PackageReference Include="YamlDotNet" Version="5.2.1" />
     <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
   </ItemGroup>
 
