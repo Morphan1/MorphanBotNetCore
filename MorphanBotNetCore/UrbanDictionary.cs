@@ -11,12 +11,28 @@ namespace MorphanBotNetCore
 {
     public class UrbanDictionary : ModuleBase<SocketCommandContext>
     {
-        public static readonly string URBAN_URL = "http://api.urbandictionary.com/v0/define?term=";
+        public static readonly string URBAN_API = "http://api.urbandictionary.com/v0/";
+
+        public static readonly string DEFINE_TERM = URBAN_API + "define?term=";
+
+        public static readonly string DEFINE_ID = URBAN_API + "define?defid=";
+
+        public static readonly string RANDOM = URBAN_API + "random";
 
         [Command("urban")]
         public async Task BasicSearch([Remainder] string input)
         {
-            UrbanResponse response = Search(input);
+            input = input.Trim();
+            string lower = input.ToLower();
+            UrbanResponse response;
+            if (lower == "random")
+            {
+                response = Random();
+            }
+            else
+            {
+                response = Search(input);
+            }
             if (response == null)
             {
                 await ReplyAsync("Error! Response not found.");
@@ -27,8 +43,7 @@ namespace MorphanBotNetCore
             }
             else
             {
-                int num = Utilities.random.Next(response.list.Count);
-                UrbanDefinition definition = response.list[num];
+                UrbanDefinition definition = response.list[0];
                 string defString = definition.definition.Replace("\n\n", " ").Replace("\n", " ").Replace("\r", "");
                 string exampleString = definition.example.Replace("\n\n", " ").Replace("\n", " ").Replace("\r", "");
                 await ReplyAsync(definition.word + " (" + definition.defid + "): " + defString);
@@ -36,11 +51,20 @@ namespace MorphanBotNetCore
             }
         }
 
-        public static UrbanResponse Search(string input)
+        public static UrbanResponse GetUrbanResponse(string url)
         {
-            string url = URBAN_URL + Uri.EscapeDataString(input);
             HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
             return Utilities.GetObjectFromWebResponse<UrbanResponse>((HttpWebResponse)wr.GetResponse());
+        }
+
+        public static UrbanResponse Random()
+        {
+            return GetUrbanResponse(RANDOM);
+        }
+
+        public static UrbanResponse Search(string input)
+        {
+            return GetUrbanResponse(DEFINE_TERM + Uri.EscapeDataString(input));
         }
     }
 
