@@ -3,11 +3,13 @@ using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using MorphanBotNetCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace MorphanBotNetCore
 {
@@ -19,9 +21,7 @@ namespace MorphanBotNetCore
 
         public IServiceProvider Services;
 
-        private string BotToken;
-
-        public YAMLConfiguration Configuration;
+        public BotSettings Configuration;
 
         static void Main(string[] args)
         {
@@ -30,13 +30,16 @@ namespace MorphanBotNetCore
 
         public async Task StartAsync()
         {
-            Configuration = new YAMLConfiguration(GetConfigString());
-            if ((BotToken = Configuration.ReadString("discord", null)) == null)
+            using (FileStream stream = File.OpenRead("config.yml"))
+            {
+                Configuration = new YamlStorage(new UnderscoredNamingConvention()).Load<BotSettings>(stream);
+            }
+            if (Configuration.Discord == null)
             {
                 Console.WriteLine("No 'discord' key with a token in config.yml!");
                 return;
             }
-            if ((WolframAlpha.AppID = Configuration.ReadString("wolfram", null)) == null)
+            if ((WolframAlpha.AppID = Configuration.Wolfram) == null)
             {
                 Console.WriteLine("No 'wolfram' key with an app ID in config.yml!");
                 return;
@@ -48,7 +51,7 @@ namespace MorphanBotNetCore
                 .AddSingleton(Client)
                 .AddSingleton(Commands)
                 .BuildServiceProvider();
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly());
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
 
             Client.Log += async (e) =>
             {
@@ -70,7 +73,7 @@ namespace MorphanBotNetCore
                 }
             };
 
-            await Client.LoginAsync(TokenType.Bot, BotToken);
+            await Client.LoginAsync(TokenType.Bot, Configuration.Discord);
             await Client.StartAsync();
             await Task.Delay(-1);
         }
@@ -86,7 +89,7 @@ namespace MorphanBotNetCore
                     return;
                 }
                 ICommandContext context = new SocketCommandContext(Client, message);
-                IResult result = await Commands.ExecuteAsync(context, argPos);
+                IResult result = await Commands.ExecuteAsync(context, argPos, Services);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     await context.Channel.SendMessageAsync(result.ErrorReason);

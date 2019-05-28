@@ -1,10 +1,10 @@
 ﻿using Discord.Commands;
 using System;
 using System.Collections.Generic;
-using System.DrawingCore;
-using System.DrawingCore.Drawing2D;
-using System.DrawingCore.Imaging;
-using System.DrawingCore.Text;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -51,7 +51,7 @@ namespace MorphanBotNetCore
                     StringFormat sf = new StringFormat();
                     sf.FormatFlags |= StringFormatFlags.MeasureTrailingSpaces | StringFormatFlags.FitBlackBox | StringFormatFlags.NoWrap | StringFormatFlags.NoClip;
                     FontFamily fontFamily = new FontFamily("Impact");
-                    Font font = new Font(fontFamily, 72F, FontStyle.Regular, GraphicsUnit.Pixel);
+                    Font font = new Font(fontFamily, 72F, FontStyle.Bold, GraphicsUnit.Pixel);
                     List<string> wrapped = WrapText(graphics, text, bitmap.Width, font, sf);
                     while (font.Size > 0 && wrapped.Count > 2)
                     {
@@ -71,7 +71,7 @@ namespace MorphanBotNetCore
                     }
                     graphics.FillPath(new SolidBrush(Color.White), path);
                     // TODO: figure out outlining on Linux - it's borked right up!
-                    //graphics.DrawPath(new Pen(Brushes.Black, 5) { LineJoin = LineJoin.Round }, path);
+                    graphics.DrawPath(new Pen(Brushes.Black, 5) { LineJoin = LineJoin.Round }, path);
                 }
                 using (MemoryStream stream = new MemoryStream())
                 {
