@@ -14,19 +14,25 @@ namespace MorphanBotNetCore
         public async Task RollDice([Remainder] string input)
         {
             input = input.ToLowerInvariant();
-            Match match = Regex.Match(input, @"(\d+)?d(\d+)");
+            Match match = Regex.Match(input, @"(\d+)?d(\d+)(d(\d+))?");
             if (match.Success)
             {
                 while (match.Success)
                 {
                     int dice = 1;
+                    List<int> lowest = new List<int>();
+                    int lowestCount = 0;
                     if (match.Groups[1].Success)
                     {
                         dice = Utilities.StringToInt(match.Groups[1].Value);
                     }
+                    if (match.Groups[4].Success)
+                    {
+                        lowestCount = Utilities.StringToInt(match.Groups[4].Value);
+                    }
                     int sides = Utilities.StringToInt(match.Groups[2].Value);
                     StringBuilder sb = new StringBuilder();
-                    if (dice > 1)
+                    if (dice > 1 || lowestCount > 0)
                     {
                         sb.Append("(");
                     }
@@ -34,9 +40,32 @@ namespace MorphanBotNetCore
                     {
                         int roll = Utilities.random.Next(1, sides + 1);
                         sb.Append(roll).Append(" + ");
+                        if (lowest.Count < lowestCount)
+                        {
+                            lowest.Add(roll);
+                        }
+                        else
+                        {
+                            for (int x = 0; x < lowestCount; x++)
+                            {
+                                if (roll < lowest[x])
+                                {
+                                    lowest[x] = roll;
+                                    break;
+                                }
+                            }
+                        }
                     }
                     sb.Remove(sb.Length - 3, 3);
-                    if (dice > 1)
+                    foreach (int low in lowest)
+                    {
+                        if (low == 0)
+                        {
+                            break;
+                        }
+                        sb.Append(" - ").Append(low);
+                    }
+                    if (dice > 1 || lowestCount > 0)
                     {
                         sb.Append(")");
                     }
