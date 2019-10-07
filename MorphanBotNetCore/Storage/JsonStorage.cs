@@ -1,43 +1,34 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using YamlDotNet.Serialization;
 
 namespace MorphanBotNetCore.Storage
 {
     /// <summary>
-    /// YAML file-based storage provider.
+    /// JSON storage provider.
     /// </summary>
-    public class YamlStorage : IStructuredStorage
+    public class JsonStorage : IStructuredStorage
     {
         /// <summary>
-        /// The YAML deserializer.
+        /// The JSON serializer and deserializer.
         /// </summary>
-        public IDeserializer Deserializer;
-
-        /// <summary>
-        /// The YAML serializer.
-        /// </summary>
-        public ISerializer Serializer;
+        public JsonSerializer Serializer;
 
         /// <summary>
         /// The file extension this storage supports.
         /// </summary>
-        public string FileExtension => "yml";
+        public string FileExtension => "json";
 
         /// <summary>
-        /// Creates a new YAML storage provider with the specified naming convention.
+        /// Creates a new JSON storage provider and optionally configures it.
         /// </summary>
-        /// <param name="convention">The naming convention to use.</param>
-        public YamlStorage(INamingConvention convention)
+        /// <param name="configure">Configures the serializer/deserializer.</param>
+        public JsonStorage(Action<JsonSerializer> configure = null)
         {
-            Deserializer = new DeserializerBuilder()
-                .WithNamingConvention(convention)
-                .Build();
-            Serializer = new SerializerBuilder()
-                .WithNamingConvention(convention)
-                .Build();
+            Serializer = new JsonSerializer();
+            configure?.Invoke(Serializer);
         }
 
         /// <summary>
@@ -48,9 +39,10 @@ namespace MorphanBotNetCore.Storage
         /// <returns>A data structure, filled if possible.</returns>
         public T Load<T>(Stream stream)
         {
-            using (StreamReader reader = new StreamReader(stream, Utilities.DefaultEncoding))
+            using (StreamReader sr = new StreamReader(stream, Utilities.DefaultEncoding))
+            using (JsonReader reader = new JsonTextReader(sr))
             {
-                return Deserializer.Deserialize<T>(reader);
+                return Serializer.Deserialize<T>(reader);
             }
         }
 
@@ -61,7 +53,8 @@ namespace MorphanBotNetCore.Storage
         /// <typeparam name="T">The data structure type.</typeparam>
         public void Write<T>(Stream stream, T data)
         {
-            using (StreamWriter writer = new StreamWriter(stream, Utilities.DefaultEncoding))
+            using (StreamWriter sw = new StreamWriter(stream, Utilities.DefaultEncoding))
+            using (JsonWriter writer = new JsonTextWriter(sw))
             {
                 Serializer.Serialize(writer, data, typeof(T));
             }

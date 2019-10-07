@@ -3,6 +3,7 @@ using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using MorphanBotNetCore.Games;
 using MorphanBotNetCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,8 @@ namespace MorphanBotNetCore
 
         public IServiceProvider Services;
 
+        public IStructuredStorage PrimaryStorage;
+
         public BotSettings Configuration;
 
         static void Main(string[] args)
@@ -30,18 +33,16 @@ namespace MorphanBotNetCore
 
         public async Task StartAsync()
         {
-            using (FileStream stream = File.OpenRead("config.yml"))
-            {
-                Configuration = new YamlStorage(new UnderscoredNamingConvention()).Load<BotSettings>(stream);
-            }
+            PrimaryStorage = new YamlStorage(new UnderscoredNamingConvention());
+            Configuration = PrimaryStorage.Load<BotSettings>("config");
             if (Configuration.Discord == null)
             {
-                Console.WriteLine("No 'discord' key with a token in config.yml!");
+                Console.WriteLine($"No 'discord' key with a token in config.{PrimaryStorage.FileExtension}!");
                 return;
             }
             if ((WolframAlpha.AppID = Configuration.Wolfram) == null)
             {
-                Console.WriteLine("No 'wolfram' key with an app ID in config.yml!");
+                Console.WriteLine($"No 'wolfram' key with an app ID in config.{PrimaryStorage.FileExtension}!");
                 return;
             }
             Client = new DiscordSocketClient();
@@ -94,19 +95,6 @@ namespace MorphanBotNetCore
                 {
                     await context.Channel.SendMessageAsync(result.ErrorReason);
                 }
-            }
-        }
-
-        private static string GetConfigString()
-        {
-            try
-            {
-                return File.ReadAllText("config.yml");
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Failed to read config.yml!");
-                return "";
             }
         }
     }

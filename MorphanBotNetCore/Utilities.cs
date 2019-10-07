@@ -12,6 +12,8 @@ namespace MorphanBotNetCore
     {
         public static readonly Random random = new Random();
 
+        public static readonly UTF8Encoding DefaultEncoding = new UTF8Encoding();
+
         public static int StringToInt(string input)
         {
             if (int.TryParse(input, out int outp))
