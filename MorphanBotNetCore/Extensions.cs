@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MorphanBotNetCore
@@ -15,6 +16,11 @@ namespace MorphanBotNetCore
             builder.Append(replacement);
             builder.Append(s.Substring(index + length));
             return builder.ToString();
+        }
+
+        public static string StripNonAlphaNumeric(this string s)
+        {
+            return Regex.Replace(s.Replace(" ", "_"), "[^a-zA-Z0-9_]+", string.Empty);
         }
     }
 }

@@ -1,13 +1,10 @@
 ﻿using Discord;
-using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using MorphanBotNetCore.Games;
 using MorphanBotNetCore.Storage;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization.NamingConventions;
@@ -25,6 +22,8 @@ namespace MorphanBotNetCore
         public IStructuredStorage PrimaryStorage;
 
         public BotSettings Configuration;
+
+        public GameManager Games;
 
         static void Main(string[] args)
         {
@@ -48,9 +47,11 @@ namespace MorphanBotNetCore
             Client = new DiscordSocketClient();
             Client.MessageReceived += HandleCommandAsync;
             Commands = new CommandService();
+            Games = new GameManager();
             Services = new ServiceCollection()
                 .AddSingleton(Client)
                 .AddSingleton(Commands)
+                .AddSingleton(Games)
                 .BuildServiceProvider();
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
 
