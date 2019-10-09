@@ -9,9 +9,26 @@ namespace MorphanBotNetCore.Storage
     {
         public static T Load<T>(this IStructuredStorage storage, string fileName)
         {
-            using (FileStream stream = File.OpenRead($"{fileName}.{storage.FileExtension}"))
+            fileName += "." + storage.FileExtension;
+            if (!File.Exists(fileName))
+            {
+                return default;
+            }
+            using (FileStream stream = File.OpenRead(fileName))
             {
                 return storage.Load<T>(stream);
+            }
+        }
+        public static void Write<T>(this IStructuredStorage storage, string fileName, T data)
+        {
+            fileName += "." + storage.FileExtension;
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+            using (FileStream stream = File.OpenWrite(fileName))
+            {
+                storage.Write(stream, data);
             }
         }
     }
