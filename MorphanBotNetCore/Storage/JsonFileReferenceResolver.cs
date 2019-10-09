@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -25,7 +26,8 @@ namespace MorphanBotNetCore.Storage
                     {
                         property.Converter = new JsonFileReferenceConverter()
                         {
-                            List = attribute.List
+                            List = attribute.List,
+                            Folder = attribute.Folder
                         };
                     }
                 }
@@ -38,6 +40,8 @@ namespace MorphanBotNetCore.Storage
     {
         public bool List;
 
+        public string Folder;
+
         public override bool CanConvert(Type objectType)
         {
             return true;
@@ -48,11 +52,12 @@ namespace MorphanBotNetCore.Storage
             JToken token = JToken.Load(reader);
             if (token.Type == JTokenType.Array)
             {
+                Type type = objectType.GenericTypeArguments[0];
                 List<string> files = token.ToObject<List<string>>();
                 IList list = (IList)Activator.CreateInstance(objectType);
                 foreach (string file in files)
                 {
-                    list.Add(ReadFile(serializer, file, objectType.GenericTypeArguments[0]));
+                    list.Add(ReadFile(serializer, file, type));
                 }
                 return list;
             }
@@ -65,23 +70,34 @@ namespace MorphanBotNetCore.Storage
             {
                 IList list = (IList)value;
                 List<string> files = new List<string>();
+                PropertyInfo nameProperty = value.GetType().GenericTypeArguments[0].GetProperties()
+                    .Where((prop) => prop.GetCustomAttribute<FileNameAttribute>() != null)
+                    .First();
                 foreach (object obj in list)
                 {
-                    string filePath = ((IFileReferenceable)obj).GetFilePath();
+                    string filePath = Folder + ((string)nameProperty.GetValue(obj)).ToLowerInvariant().StripNonAlphaNumeric();
                     WriteFile(serializer, filePath, obj);
                     files.Add(filePath);
                 }
                 serializer.Serialize(writer, files);
                 return;
             }
-            string path = ((IFileReferenceable)value).GetFilePath();
+            PropertyInfo nameProp = value.GetType().GetProperties()
+                .Where((prop) => prop.GetCustomAttribute<FileNameAttribute>() != null)
+                .First();
+            string path = Folder + ((string)nameProp.GetValue(value)).ToLowerInvariant().StripNonAlphaNumeric();
             WriteFile(serializer, path, value);
             serializer.Serialize(writer, path);
         }
 
         private static object ReadFile(JsonSerializer serializer, string file, Type objectType)
         {
-            using (FileStream stream = File.OpenRead($"{file}.json"))
+            file += ".json";
+            if (!File.Exists(file))
+            {
+                return default;
+            }
+            using (FileStream stream = File.OpenRead(file))
             using (StreamReader sr = new StreamReader(stream, Utilities.DefaultEncoding))
             using (JsonReader fileReader = new JsonTextReader(sr))
             {
@@ -91,7 +107,12 @@ namespace MorphanBotNetCore.Storage
 
         private static void WriteFile(JsonSerializer serializer, string file, object value)
         {
-            using (FileStream stream = File.OpenWrite($"{file}.json"))
+            file += ".json";
+            if (File.Exists(file))
+            {
+                File.Delete(file);
+            }
+            using (FileStream stream = File.OpenWrite(file))
             using (StreamWriter sw = new StreamWriter(stream, Utilities.DefaultEncoding))
             using (JsonWriter fileWriter = new JsonTextWriter(sw))
             {

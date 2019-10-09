@@ -7,5 +7,11 @@ namespace MorphanBotNetCore.Storage
     public class FileReferenceAttribute : Attribute
     {
         public bool List;
+
+        public string Folder;
+    }
+
+    public class FileNameAttribute : Attribute
+    {
     }
 }

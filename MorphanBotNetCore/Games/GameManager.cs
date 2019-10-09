@@ -29,13 +29,6 @@ namespace MorphanBotNetCore.Games
             SetupGames();
         }
 
-        private static KeyValuePair<string, Func<IGame>> CreateFactory<T>() where T : IGame, new()
-        {
-            Func<IGame> gameFactory = () => new T();
-            string key = gameFactory().InternalName;
-            return new KeyValuePair<string, Func<IGame>>(key, gameFactory);
-        }
-
         public void SetupGameFactories()
         {
             GameFactories = new FactoryDictionary<string, IGame>()
@@ -84,6 +77,13 @@ namespace MorphanBotNetCore.Games
                 pair.Value.Save(Storage);
             }
             Storage.Write(GamesFolder + "games", bank);
+        }
+
+        private static KeyValuePair<string, Func<IGame>> CreateFactory<T>() where T : IGame, new()
+        {
+            Func<IGame> gameFactory = () => new T();
+            string key = gameFactory().InternalName;
+            return new KeyValuePair<string, Func<IGame>>(key, gameFactory);
         }
     }
 }

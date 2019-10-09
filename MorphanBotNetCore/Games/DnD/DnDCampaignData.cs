@@ -9,7 +9,7 @@ namespace MorphanBotNetCore.Games.DnD
     {
         public ulong DungeonMaster { get; set; }
 
-        [FileReference(List = true)]
+        [FileReference(List = true, Folder = DnDGame.CharactersFolder)]
         public List<DnDPlayerCharacter> Players { get; set; } = new List<DnDPlayerCharacter>();
     }
 }

@@ -11,7 +11,11 @@ namespace MorphanBotNetCore.Games.DnD
 {
     public class DnDGame : Game<DnDCampaignData>
     {
-        public override string InternalName => "dnd5e";
+        public const string _InternalName = "dnd5e";
+
+        public const string CharactersFolder = GameManager.GamesFolder + _InternalName + "/characters/";
+
+        public override string InternalName => _InternalName;
 
         public override string Name => "Dungeons & Dragons";
 
@@ -20,8 +24,6 @@ namespace MorphanBotNetCore.Games.DnD
         public override string[] ExtraFolders => new string[] { CharactersFolder };
 
         public override Type[] Modules => new Type[] { typeof(DnDCommands) };
-
-        public string CharactersFolder => GameFolder + "characters/";
 
         public Dictionary<string, DnDPlayerCharacter> CachedPlayers = new Dictionary<string, DnDPlayerCharacter>();
 
@@ -61,7 +63,7 @@ namespace MorphanBotNetCore.Games.DnD
 
         public DnDPlayerCharacter CreatePlayer(string race, string name)
         {
-            return new DnDPlayerCharacter(CharactersFolder + name)
+            return new DnDPlayerCharacter()
             {
                 Alive = true,
                 Race = race,
