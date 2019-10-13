@@ -128,15 +128,20 @@ namespace MorphanBotNetCore.Games.DnD
         public string IntimidationMod { get; set; }
         public string PerformanceMod { get; set; }
         public string PersuasionMod { get; set; }
-        public string PerceptionCc { get; set; }
-        public string NatureCc { get; set; }
-        public string SurvivalCc { get; set; }
+        public string AthleticsCc { get; set; }
+        public string AcrobaticsCc { get; set; }
+        public string SleightOfHandCc { get; set; }
+        public string StealthCc { get; set; }
         public string ArcanaCc { get; set; }
         public string HistoryCc { get; set; }
         public string InvestigationCc { get; set; }
+        public string NatureCc { get; set; }
+        public string ReligionCc { get; set; }
         public string AnimalHandlingCc { get; set; }
         public string InsightCc { get; set; }
         public string MedicineCc { get; set; }
+        public string PerceptionCc { get; set; }
+        public string SurvivalCc { get; set; }
         public string DeceptionCc { get; set; }
         public string IntimidationCc { get; set; }
         public string PerformanceCc { get; set; }
@@ -206,17 +211,65 @@ namespace MorphanBotNetCore.Games.DnD
         public string Equip19_ { get; set; }
         public string Equip20_ { get; set; }
         public string Equip1Weight { get; set; }
-        public string Equip2Weight { get; set; }
-        public string Equip1Loc { get; set; }
         public string Equip1Worth { get; set; }
-        public string Equip2Loc { get; set; }
+        public string Equip1Loc { get; set; })
+        public string Equip2Weight { get; set; }
         public string Equip2Worth { get; set; }
+        public string Equip2Loc { get; set; })
         public string Equip3Weight { get; set; }
-        public string Equip3Loc { get; set; }
         public string Equip3Worth { get; set; }
+        public string Equip3Loc { get; set; })
         public string Equip4Weight { get; set; }
-        public string Equip4Loc { get; set; }
         public string Equip4Worth { get; set; }
+        public string Equip4Loc { get; set; })
+        public string Equip5Weight { get; set; }
+        public string Equip5Worth { get; set; }
+        public string Equip5Loc { get; set; })
+        public string Equip6Weight { get; set; }
+        public string Equip6Worth { get; set; }
+        public string Equip6Loc { get; set; })
+        public string Equip7Weight { get; set; }
+        public string Equip7Worth { get; set; }
+        public string Equip7Loc { get; set; })
+        public string Equip8Weight { get; set; }
+        public string Equip8Worth { get; set; }
+        public string Equip8Loc { get; set; })
+        public string Equip9Weight { get; set; }
+        public string Equip9Worth { get; set; }
+        public string Equip9Loc { get; set; })
+        public string Equip10Weight { get; set; }
+        public string Equip10Worth { get; set; }
+        public string Equip10Loc { get; set; })
+        public string Equip11Weight { get; set; }
+        public string Equip11Worth { get; set; }
+        public string Equip11Loc { get; set; })
+        public string Equip12Weight { get; set; }
+        public string Equip12Worth { get; set; }
+        public string Equip12Loc { get; set; })
+        public string Equip13Weight { get; set; }
+        public string Equip13Worth { get; set; }
+        public string Equip13Loc { get; set; })
+        public string Equip14Weight { get; set; }
+        public string Equip14Worth { get; set; }
+        public string Equip14Loc { get; set; })
+        public string Equip15Weight { get; set; }
+        public string Equip15Worth { get; set; }
+        public string Equip15Loc { get; set; })
+        public string Equip16Weight { get; set; }
+        public string Equip16Worth { get; set; }
+        public string Equip16Loc { get; set; })
+        public string Equip17Weight { get; set; }
+        public string Equip17Worth { get; set; }
+        public string Equip17Loc { get; set; })
+        public string Equip18Weight { get; set; }
+        public string Equip18Worth { get; set; }
+        public string Equip18Loc { get; set; })
+        public string Equip19Weight { get; set; }
+        public string Equip19Worth { get; set; }
+        public string Equip19Loc { get; set; })
+        public string Equip20Weight { get; set; }
+        public string Equip20Worth { get; set; }
+        public string Equip20Loc { get; set; }) 
         public string CurrencyCp { get; set; }
         public string CurrencySp { get; set; }
         public string CurrencyEp { get; set; }
