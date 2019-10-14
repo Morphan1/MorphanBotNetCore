@@ -11,12 +11,4 @@ namespace MorphanBotNetCore.Games
 
         public DateTime LastActivity { get; set; } = DateTime.Now;
     }
-
-    public class CommonPlayerData
-    {
-        [FileName]
-        public string Name { get; set; }
-
-        public ulong ControlledBy { get; set; }
-    }
 }

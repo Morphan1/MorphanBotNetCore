@@ -6,6 +6,8 @@ namespace MorphanBotNetCore.Games
 {
     public class GameBank
     {
+        public int LastGame { get; set; }
+
         public List<GameItem> Games { get; set; } = new List<GameItem>();
     }
 

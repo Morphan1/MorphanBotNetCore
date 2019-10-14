@@ -9,10 +9,6 @@ namespace MorphanBotNetCore.Games
     {
         public GameManager Games { get; set; }
 
-        public CommandService Commands { get; set; }
-
-        public IServiceProvider Services { get; set; }
-
         [Command("savegames")]
         public async Task SaveGames()
         {
@@ -77,9 +73,7 @@ namespace MorphanBotNetCore.Games
             if (Games.ExistingGames.TryGetValue(title, out IGame game))
             {
                 await ReplyAsync("Loaded " + game.FullName + " game " + game.Data.Title + ".");
-                Games.CurrentGame?.UnregisterModules(Commands);
-                Games.CurrentGame = game;
-                Games.CurrentGame.RegisterModules(Commands, Services);
+                Games.SetGame(game);
             }
             else
             {

@@ -22,7 +22,14 @@ namespace MorphanBotNetCore.Games
 
         public IGame CurrentGame;
 
-        public GameManager()
+        public MorphBot Bot;
+
+        public GameManager(MorphBot bot)
+        {
+            Bot = bot;
+        }
+
+        public void Init()
         {
             SetupGameFactories();
             SetupStorage();
@@ -52,22 +59,40 @@ namespace MorphanBotNetCore.Games
         {
             ExistingGames = new Dictionary<string, IGame>();
             GameBank bank = Storage.Load<GameBank>(GamesFile);
-            bank?.Games.ForEach((item) =>
+            for (int i = 0; i < bank?.Games.Count; i++)
             {
+                GameItem item = bank.Games[i];
                 if (GameFactories.TryCreate(item.Game, out IGame game))
                 {
                     game.InternalTitle = item.InternalTitle;
                     game.Load(Storage);
                     ExistingGames.Add(game.InternalTitle, game);
+                    if (bank.LastGame == i)
+                    {
+                        SetGame(game);
+                    }
                 }
-            });
+            }
+        }
+
+        public void SetGame(IGame game)
+        {
+            CurrentGame?.UnregisterModules(Bot.Commands);
+            CurrentGame = game;
+            CurrentGame.RegisterModules(Bot.Commands, Bot.Services);
         }
 
         public void Save()
         {
             GameBank bank = new GameBank();
+            int lastGame = -1;
+            int curr = 0;
             foreach (KeyValuePair<string, IGame> pair in ExistingGames)
             {
+                if (pair.Value == CurrentGame)
+                {
+                    lastGame = curr;
+                }
                 bank.Games.Add(new GameItem()
                 {
                     Game = pair.Value.InternalName,
@@ -75,7 +100,9 @@ namespace MorphanBotNetCore.Games
                     LastActivity = pair.Value.Data.LastActivity
                 });
                 pair.Value.Save(Storage);
+                curr++;
             }
+            bank.LastGame = lastGame;
             Storage.Write(GamesFolder + "games", bank);
         }
 

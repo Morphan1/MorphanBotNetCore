@@ -47,12 +47,13 @@ namespace MorphanBotNetCore
             Client = new DiscordSocketClient();
             Client.MessageReceived += HandleCommandAsync;
             Commands = new CommandService();
-            Games = new GameManager();
+            Games = new GameManager(this);
             Services = new ServiceCollection()
                 .AddSingleton(Client)
                 .AddSingleton(Commands)
                 .AddSingleton(Games)
                 .BuildServiceProvider();
+            Games.Init();
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
 
             Client.Log += async (e) =>
@@ -86,7 +87,8 @@ namespace MorphanBotNetCore
             {
                 int argPos = 0;
                 if (!message.HasStringPrefix("//", ref argPos) && !message.HasStringPrefix("!!", ref argPos)
-                    && !message.HasCharPrefix('/', ref argPos) && !message.HasMentionPrefix(Client.CurrentUser, ref argPos))
+                    && !message.HasCharPrefix('/', ref argPos) && !message.HasMentionPrefix(Client.CurrentUser, ref argPos)
+                    && !message.HasCharPrefix('.', ref argPos))
                 {
                     return;
                 }

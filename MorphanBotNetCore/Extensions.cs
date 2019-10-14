@@ -22,6 +22,11 @@ namespace MorphanBotNetCore
         {
             return Regex.Replace(s.Replace(" ", "_"), "[^a-zA-Z0-9_]+", string.Empty);
         }
+
+        public static string StripNonNumeric(this string s)
+        {
+            return Regex.Replace(s, "[^0-9+-]+", string.Empty);
+        }
     }
 }
 

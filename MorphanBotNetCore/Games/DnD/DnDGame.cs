@@ -53,11 +53,13 @@ namespace MorphanBotNetCore.Games.DnD
         public void AddPlayer(DnDPlayerCharacter character)
         {
             GameData.Players.Add(character);
+            character.LastKnownCampaign = InternalTitle;
         }
 
         public void RemovePlayer(DnDPlayerCharacter character)
         {
             character.ControlledBy = 0UL;
+            character.LastKnownCampaign = null;
             GameData.Players.Remove(character);
         }
 
@@ -65,9 +67,13 @@ namespace MorphanBotNetCore.Games.DnD
         {
             return new DnDPlayerCharacter()
             {
+                Name = name,
                 Alive = true,
-                Race = race,
-                Name = name
+                BasicInfo = new DnDBasicCharacterInfo()
+                {
+                    Race = race
+                },
+                Inspiration = false
             };
         }
 
