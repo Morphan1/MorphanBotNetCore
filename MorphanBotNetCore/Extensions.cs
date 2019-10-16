@@ -28,5 +28,13 @@ namespace MorphanBotNetCore
             return Regex.Replace(s, "[^0-9+-]+", string.Empty);
         }
     }
+
+    public static class IntExtensions
+    {
+        public static string ShowSign(this int i)
+        {
+            return (i > 0 ? "+" : i < 0 ? "-" : string.Empty) + Math.Abs(i);
+        }
+    }
 }
 

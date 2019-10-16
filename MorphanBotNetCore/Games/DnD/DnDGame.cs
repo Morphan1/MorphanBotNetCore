@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using MorphanBotNetCore.Storage;
@@ -29,7 +30,7 @@ namespace MorphanBotNetCore.Games.DnD
 
         public DnDPlayerCharacter GetPlayer(ulong userId)
         {
-            return GameData.Players.Where((p) => p.ControlledBy == userId).FirstOrDefault();
+            return DnDMigrate.Migrate(GameData.Players.Where((p) => p.ControlledBy == userId).FirstOrDefault());
         }
 
         public DnDPlayerCharacter GetPlayer(IStructuredStorage storage, string name)
@@ -44,7 +45,7 @@ namespace MorphanBotNetCore.Games.DnD
                 }
                 if (player != null)
                 {
-                    CachedPlayers.Add(name, player);
+                    CachedPlayers.Add(name, DnDMigrate.Migrate(player));
                 }
             }
             return player;
@@ -92,6 +93,49 @@ namespace MorphanBotNetCore.Games.DnD
             return builder.AddField("Dungeon Master", GameData.DungeonMaster != 0UL ? $"<@{GameData.DungeonMaster}>" : "None", true)
                           .AddField("Players Alive", GameData.Players.Count((p) => p.Alive), true)
                           .AddField("Players Dead", GameData.Players.Count((p) => !p.Alive), true);
+        }
+
+        private const string IgnoreMath = @"[^\d\*\/\+\-\^\%]*";
+
+        public override string SpecialRoll(ulong userId, string input)
+        {
+            input = Regex.Replace(input, "adv" + IgnoreMath, "2d20d1");
+            input = Regex.Replace(input, "dis" + IgnoreMath, "2d20k1");
+            DnDPlayerCharacter player = GetPlayer(userId);
+            if (player != null)
+            {
+                foreach (DnDAbilityScores ability in Utilities.GetEnumValues<DnDAbilityScores>())
+                {
+                    // first 3 letters... str, dex, con, int, wis, cha
+                    string name = ability.ToString().Substring(0, 3).ToLowerInvariant() + IgnoreMath;
+                    // only an ability score -> roll d20 + mod
+                    input = Regex.Replace(input, "^" + name + "$", "1d20" + GetModString(player, ability));
+                    // somewhere in a string -> assume it can be replaced with the mod
+                    input = Regex.Replace(input, name, "(" + player.BasicInfo.GetAbilityMod(ability) + ")");
+                }
+                foreach (DnDCharacterSkills skill in Utilities.GetEnumValues<DnDCharacterSkills>())
+                {
+                    // first 4 letters... athl, acro, slei, stea, arca, hist, inve, natu, reli, anim, insi, medi, perc, surv, dece, inti, perf, pers
+                    string name = skill.ToString().Substring(0, 4).ToLowerInvariant() + IgnoreMath;
+                    // only a skill -> roll d20 + mod
+                    input = Regex.Replace(input, "^" + name + "$", "1d20" + GetModString(player, skill));
+                    // somewhere in a string -> assume it can be replaced with the mod
+                    input = Regex.Replace(input, name, "(" + player.GetSkillMod(skill) + ")");
+                }
+            }
+            return input;
+        }
+
+        private static string GetModString(DnDPlayerCharacter player, DnDAbilityScores ability)
+        {
+            int mod = player.BasicInfo.GetAbilityMod(ability);
+            return (mod < 0 ? " - " : " + ") + Math.Abs(mod);
+        }
+
+        private static string GetModString(DnDPlayerCharacter player, DnDCharacterSkills skill)
+        {
+            int mod = player.GetSkillMod(skill);
+            return (mod < 0 ? " - " : " + ") + Math.Abs(mod);
         }
     }
 }

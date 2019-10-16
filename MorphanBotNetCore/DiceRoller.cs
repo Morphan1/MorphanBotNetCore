@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using MorphanBotNetCore.Games;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,29 +11,41 @@ namespace MorphanBotNetCore
 {
     public class DiceRoller : ModuleBase<SocketCommandContext>
     {
+        public GameManager Games { get; set; }
+
         [Command("roll")]
         public async Task RollDice([Remainder] string input)
         {
             input = input.ToLowerInvariant();
-            Match match = Regex.Match(input, @"(\d+)?d(\d+)(d(\d+))?");
+            if (Games.CurrentGame != null)
+            {
+                input = Games.CurrentGame.SpecialRoll(Context.User.Id, input);
+            }
+            Match match = Regex.Match(input, @"(\d+)?d(\d+)((d|k)(\d+))?");
             if (match.Success)
             {
                 while (match.Success)
                 {
                     int dice = 1;
-                    List<int> lowest = new List<int>();
-                    int lowestCount = 0;
+                    List<int> dropping = new List<int>();
+                    bool keepLowest = false;
+                    int dropCount = 0;
                     if (match.Groups[1].Success)
                     {
                         dice = Utilities.StringToInt(match.Groups[1].Value);
                     }
-                    if (match.Groups[4].Success)
+                    if (match.Groups[3].Success)
                     {
-                        lowestCount = Utilities.StringToInt(match.Groups[4].Value);
+                        keepLowest = match.Groups[4].Value == "k";
+                        dropCount = Utilities.StringToInt(match.Groups[5].Value);
+                        if (keepLowest)
+                        {
+                            dropCount = dice - dropCount;
+                        }
                     }
                     int sides = Utilities.StringToInt(match.Groups[2].Value);
                     StringBuilder sb = new StringBuilder();
-                    if (dice > 1 || lowestCount > 0)
+                    if (dice > 1 || dropCount > 0)
                     {
                         sb.Append("(");
                     }
@@ -40,32 +53,32 @@ namespace MorphanBotNetCore
                     {
                         int roll = Utilities.random.Next(1, sides + 1);
                         sb.Append(roll).Append(" + ");
-                        if (lowest.Count < lowestCount)
+                        if (dropping.Count < dropCount)
                         {
-                            lowest.Add(roll);
+                            dropping.Add(roll);
                         }
                         else
                         {
-                            for (int x = 0; x < lowestCount; x++)
+                            for (int x = 0; x < dropCount; x++)
                             {
-                                if (roll < lowest[x])
+                                if ((!keepLowest && roll < dropping[x]) || (keepLowest && roll > dropping[x]))
                                 {
-                                    lowest[x] = roll;
+                                    dropping[x] = roll;
                                     break;
                                 }
                             }
                         }
                     }
                     sb.Remove(sb.Length - 3, 3);
-                    foreach (int low in lowest)
+                    foreach (int drop in dropping)
                     {
-                        if (low == 0)
+                        if (drop == 0)
                         {
                             break;
                         }
-                        sb.Append(" - ").Append(low);
+                        sb.Append(" - ").Append(drop);
                     }
-                    if (dice > 1 || lowestCount > 0)
+                    if (dice > 1 || dropCount > 0)
                     {
                         sb.Append(")");
                     }
@@ -90,7 +103,7 @@ namespace MorphanBotNetCore
             }
             else
             {
-                await ReplyAsync("You must specify at least set of dice to roll!");
+                await ReplyAsync("You must specify at least one set of dice to roll!");
             }
         }
     }

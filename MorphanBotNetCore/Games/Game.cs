@@ -92,6 +92,8 @@ namespace MorphanBotNetCore.Games
             }
             GameData = new T();
         }
+
+        public abstract string SpecialRoll(ulong userId, string input);
     }
 
     public interface IGame
@@ -117,5 +119,7 @@ namespace MorphanBotNetCore.Games
         EmbedBuilder CreateInfoEmbed(EmbedBuilder builder);
 
         void Init(string title, string internalTitle);
+
+        string SpecialRoll(ulong userId, string input);
     }
 }

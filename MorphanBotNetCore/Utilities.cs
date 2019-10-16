@@ -42,5 +42,10 @@ namespace MorphanBotNetCore
             DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T));
             return (T)ser.ReadObject(response.GetResponseStream());
         }
+
+        public static IEnumerable<T> GetEnumValues<T>() where T : Enum
+        {
+            return (T[])Enum.GetValues(typeof(T));
+        }
     }
 }

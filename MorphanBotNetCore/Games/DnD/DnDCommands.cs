@@ -4,6 +4,7 @@ using MorphanBotNetCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -160,14 +161,333 @@ namespace MorphanBotNetCore.Games.DnD
         [Alias("infopc")]
         public async Task PlayerInfo([Remainder] string name = null)
         {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name, false);
+            if (player != null)
+            {
+                await ReplyAsync(embed: player.CreateInfoEmbed());
+            }
+        }
+
+        [Command("setstats")]
+        public async Task SetStats(int strength, int dexterity, int constitution, int intelligence, int wisdom, int charisma, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                basicInfo.Strength = strength;
+                basicInfo.Dexterity = dexterity;
+                basicInfo.Constitution = constitution;
+                basicInfo.Intelligence = intelligence;
+                basicInfo.Wisdom = wisdom;
+                basicInfo.Charisma = charisma;
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully modified stats.");
+            }
+        }
+
+        [Command("addamod")]
+        public async Task AddAbilityMod(string ability, int mod, string source, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDAbilityScores abilityScore = GetAbility(ability);
+                if ((int)abilityScore == -1)
+                {
+                    await ReplyAsync("Invalid ability score! Valid: STR, DEX, CON, INT, WIS, CHA");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                basicInfo.AbilityMods.Add(new DnDAbilityModDescriptor()
+                {
+                    SourceDescription = source,
+                    AbilityMod = new DnDAbilityModifier()
+                    {
+                        Ability = abilityScore,
+                        Modifier = mod
+                    }
+                });
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully added ability modifier.");
+            }
+        }
+
+        [Command("listamods")]
+        [Alias("listamod")]
+        public async Task ListAbilityMod(string ability = null, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                EmbedBuilder builder = new EmbedBuilder();
+                DnDAbilityScores abilityScore = GetAbility(ability);
+                if ((int)abilityScore == -1)
+                {
+                    builder.WithTitle("List of all active ability modifiers");
+                    int i = 0;
+                    DnDAbilityScores lastAbility = DnDAbilityScores.Strength;
+                    foreach (DnDAbilityModDescriptor descriptor in player.BasicInfo.AbilityMods.OrderBy((amd) => amd.AbilityMod.Ability))
+                    {
+                        if (descriptor.AbilityMod.Ability != lastAbility)
+                        {
+                            i = 0;
+                            lastAbility = descriptor.AbilityMod.Ability;
+                        }
+                        builder.Description += lastAbility.ToString().ToUpper().Substring(0, 3) + " " + (i + 1) + ": "
+                                            + descriptor.SourceDescription + " (" + descriptor.AbilityMod.Modifier.ShowSign() + ")\n";
+                        i++;
+                    }
+                }
+                else
+                {
+                    builder.WithTitle("List of active " + abilityScore.ToString().ToLowerInvariant() + " modifiers");
+                    int i = 0;
+                    foreach (DnDAbilityModDescriptor descriptor in player.BasicInfo.AbilityMods.Where((amd) => amd.AbilityMod.Ability == abilityScore))
+                    {
+                        builder.Description += (i + 1) + ": " + descriptor.SourceDescription + " (" + descriptor.AbilityMod.Modifier.ShowSign() + ")\n";
+                        i++;
+                    }
+                }
+                if (string.IsNullOrEmpty(builder.Description))
+                {
+                    builder.Description = "None";
+                }
+                await ReplyAsync(embed: builder.Build());
+            }
+        }
+
+        [Command("delamod")]
+        [Alias("remamod")]
+        public async Task DeleteAbilityMod(string ability, int num, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDAbilityScores abilityScore = GetAbility(ability);
+                if ((int)abilityScore == -1)
+                {
+                    await ReplyAsync("Invalid ability score! Valid: STR, DEX, CON, INT, WIS, CHA");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                DnDAbilityModDescriptor match = basicInfo.AbilityMods.Where((amd) => amd.AbilityMod.Ability == abilityScore).ElementAtOrDefault(num - 1);
+                if (match.Equals(default(DnDAbilityModDescriptor)))
+                {
+                    await ReplyAsync("No valid modifier found. Must be a number from .listamods " + ability);
+                    return;
+                }
+                basicInfo.AbilityMods.Remove(match);
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully deleted ability modifier.");
+            }
+        }
+
+        [Command("addsprof")]
+        public async Task AddSkillProficiency(string skillName, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDCharacterSkills skill = GetSkill(skillName);
+                if ((int)skill == -1)
+                {
+                    await ReplyAsync("Invalid skill! Valid: athl, acro, slei, stea, arca, hist, inve, natu, reli, anim, insi, medi, perc, surv, dece, inti, perf, pers");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                if (basicInfo.SkillProficiencies.Contains(skill))
+                {
+                    await ReplyAsync(player.Name + " already has a proficiency in " + skill.ToString().ToLowerInvariant() + "!");
+                    return;
+                }
+                basicInfo.SkillProficiencies.Add(skill);
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully added skill proficiency.");
+            }
+        }
+
+        [Command("listsprofs")]
+        [Alias("listsprof")]
+        public async Task ListSkillProficiencies([Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                string skills = Utilities.Join(player.BasicInfo.SkillProficiencies.Select((skill) => skill.ToString().ToLowerInvariant()).ToArray(), ", ");
+                if (string.IsNullOrEmpty(skills))
+                {
+                    skills = "None";
+                }
+                await ReplyAsync(player.Name + " is proficient in the following skills: " + skills);
+            }
+        }
+
+        [Command("delsprof")]
+        [Alias("remsprof")]
+        public async Task DeleteSkillProficiency(string skillName, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDCharacterSkills skill = GetSkill(skillName);
+                if ((int)skill == -1)
+                {
+                    await ReplyAsync("Invalid skill! Valid: athl, acro, slei, stea, arca, hist, inve, natu, reli, anim, insi, medi, perc, surv, dece, inti, perf, pers");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                if (!basicInfo.SkillProficiencies.Contains(skill))
+                {
+                    await ReplyAsync(player.Name + " does not have a proficiency in " + skill.ToString().ToLowerInvariant() + "!");
+                    return;
+                }
+                basicInfo.SkillProficiencies.Remove(skill);
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully deleted skill proficiency.");
+            }
+        }
+
+        [Command("addsmod")]
+        public async Task AddSkillMod(string skillName, int mod, string source, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDCharacterSkills skill = GetSkill(skillName);
+                if ((int)skill == -1)
+                {
+                    await ReplyAsync("Invalid skill! Valid: athl, acro, slei, stea, arca, hist, inve, natu, reli, anim, insi, medi, perc, surv, dece, inti, perf, pers");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                basicInfo.SkillMods.Add(new DnDSkillModDescriptor()
+                {
+                    SourceDescription = source,
+                    SkillMod = new DnDSkillModifier()
+                    {
+                        Skill = skill,
+                        Modifier = mod
+                    }
+                });
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully added skill modifier.");
+            }
+        }
+
+        [Command("listsmods")]
+        [Alias("listsmod")]
+        public async Task ListSkillMod(string skillName = null, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                EmbedBuilder builder = new EmbedBuilder();
+                DnDCharacterSkills skill = GetSkill(skillName);
+                if ((int)skill == -1)
+                {
+                    builder.WithTitle("List of all active skill modifiers");
+                    int i = 0;
+                    DnDCharacterSkills lastSkill = DnDCharacterSkills.Athletics;
+                    foreach (DnDSkillModDescriptor descriptor in player.BasicInfo.SkillMods.OrderBy((smd) => smd.SkillMod.Skill))
+                    {
+                        if (descriptor.SkillMod.Skill != lastSkill)
+                        {
+                            i = 0;
+                            lastSkill = descriptor.SkillMod.Skill;
+                        }
+                        builder.Description += lastSkill.ToString().ToUpper().Substring(0, 4) + " " + (i + 1) + ": "
+                                            + descriptor.SourceDescription + " (" + descriptor.SkillMod.Modifier.ShowSign() + ")\n";
+                        i++;
+                    }
+                }
+                else
+                {
+                    builder.WithTitle("List of active " + skill.ToString().ToLowerInvariant() + " modifiers");
+                    int i = 0;
+                    foreach (DnDSkillModDescriptor descriptor in player.BasicInfo.SkillMods.Where((smd) => smd.SkillMod.Skill == skill))
+                    {
+                        builder.Description += (i + 1) + ": " + descriptor.SourceDescription + " (" + descriptor.SkillMod.Modifier.ShowSign() + ")\n";
+                        i++;
+                    }
+                }
+                if (string.IsNullOrEmpty(builder.Description))
+                {
+                    builder.Description = "None";
+                }
+                await ReplyAsync(embed: builder.Build());
+            }
+        }
+
+        [Command("delsmod")]
+        [Alias("remsmod")]
+        public async Task DeleteSkillMod(string skillName, int num, [Remainder] string name = null)
+        {
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            if (player != null)
+            {
+                DnDCharacterSkills skill = GetSkill(skillName);
+                if ((int)skill == -1)
+                {
+                    await ReplyAsync("Invalid skill! Valid: athl, acro, slei, stea, arca, hist, inve, natu, reli, anim, insi, medi, perc, surv, dece, inti, perf, pers");
+                    return;
+                }
+                DnDBasicCharacterInfo basicInfo = player.BasicInfo;
+                DnDSkillModDescriptor match = basicInfo.SkillMods.Where((smd) => smd.SkillMod.Skill == skill).ElementAtOrDefault(num - 1);
+                if (match.Equals(default(DnDSkillModDescriptor)))
+                {
+                    await ReplyAsync("No valid modifier found. Must be a number from .listsmods " + skillName);
+                    return;
+                }
+                basicInfo.SkillMods.Remove(match);
+                player.BasicInfo = basicInfo;
+                await ReplyAsync("Successfully deleted skill modifier.");
+            }
+        }
+
+        private static DnDAbilityScores GetAbility(string ability)
+        {
+            if (ability == null)
+            {
+                return (DnDAbilityScores)(-1);
+            }
+            ability = ability.ToLowerInvariant();
+            foreach (DnDAbilityScores abilityScore in Utilities.GetEnumValues<DnDAbilityScores>())
+            {
+                if (ability.StartsWith(abilityScore.ToString().Substring(0, 3).ToLowerInvariant()))
+                {
+                    return abilityScore;
+                }
+            }
+            return (DnDAbilityScores)(-1);
+        }
+
+        private static DnDCharacterSkills GetSkill(string skillName)
+        {
+            if (skillName == null)
+            {
+                return (DnDCharacterSkills)(-1);
+            }
+            skillName = skillName.ToLowerInvariant();
+            foreach (DnDCharacterSkills skill in Utilities.GetEnumValues<DnDCharacterSkills>())
+            {
+                if (skillName.StartsWith(skill.ToString().Substring(0, 4).ToLowerInvariant()))
+                {
+                    return skill;
+                }
+            }
+            return (DnDCharacterSkills)(-1);
+        }
+
+        private async Task<DnDPlayerCharacter> GetPlayerOrCurrent(string name, bool modifying = true)
+        {
             DnDPlayerCharacter player;
             if (name == null)
             {
                 player = CurrentGame.GetPlayer(Context.User.Id);
                 if (player == null)
                 {
-                    await ReplyAsync("You don't have an active character! Try /pcinfo Some Name Here");
-                    return;
+                    await ReplyAsync("You don't have an active character!");
                 }
             }
             else
@@ -176,10 +496,13 @@ namespace MorphanBotNetCore.Games.DnD
                 if (player == null)
                 {
                     await ReplyAsync("No player character exists with that name!");
-                    return;
+                }
+                else if (modifying && player.ControlledBy != Context.User.Id && CurrentGame.GameData.DungeonMaster != Context.User.Id)
+                {
+                    await ReplyAsync("You don't have permission to modify that character!");
                 }
             }
-            await ReplyAsync(embed: player.CreateInfoEmbed());
+            return player;
         }
     }
 }

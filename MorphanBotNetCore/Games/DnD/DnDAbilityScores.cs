@@ -16,7 +16,7 @@ namespace MorphanBotNetCore.Games.DnD
 
     public struct DnDAbilityModifier
     {
-        public DnDAbilityScores Attribute { get; set; }
+        public DnDAbilityScores Ability { get; set; }
 
         public int Modifier { get; set; }
     }

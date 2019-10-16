@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MorphanBotNetCore.Games.DnD
@@ -36,6 +37,10 @@ namespace MorphanBotNetCore.Games.DnD
 
         public int Charisma { get; set; }
 
+        public List<DnDAbilityModDescriptor> AbilityMods { get; set; }
+
+        public List<DnDSkillModDescriptor> SkillMods { get; set; }
+
         public List<DnDCharacterSkills> SkillProficiencies { get; set; }
 
         public DnDAbilityScores? CastingAbility { get; set; }
@@ -45,6 +50,27 @@ namespace MorphanBotNetCore.Games.DnD
         public DnDAppearance Appearance { get; set; }
 
         public List<string> Languages { get; set; }
+
+        public int GetAbilityScore(DnDAbilityScores ability)
+        {
+            switch (ability)
+            {
+                case DnDAbilityScores.Strength: return Strength;
+                case DnDAbilityScores.Dexterity: return Dexterity;
+                case DnDAbilityScores.Constitution: return Constitution;
+                case DnDAbilityScores.Intelligence: return Intelligence;
+                case DnDAbilityScores.Wisdom: return Wisdom;
+                case DnDAbilityScores.Charisma: return Charisma;
+            }
+            return 0;
+        }
+
+        public int GetAbilityMod(DnDAbilityScores ability)
+        {
+            int totalMod = ((GetAbilityScore(ability) / 2) - 5);
+            totalMod += AbilityMods.Where((mod) => mod.AbilityMod.Ability == ability).Sum((mod) => mod.AbilityMod.Modifier);
+            return totalMod;
+        }
     }
 
     public struct DnDCharacterHealth
@@ -101,5 +127,19 @@ namespace MorphanBotNetCore.Games.DnD
         public string EyesColor { get; set; }
 
         public string SkinColor { get; set; }
+    }
+
+    public struct DnDAbilityModDescriptor
+    {
+        public string SourceDescription { get; set; }
+
+        public DnDAbilityModifier AbilityMod { get; set; }
+    }
+
+    public struct DnDSkillModDescriptor
+    {
+        public string SourceDescription { get; set; }
+
+        public DnDSkillModifier SkillMod { get; set; }
     }
 }

@@ -41,26 +41,38 @@ namespace MorphanBotNetCore.Games.DnD
                 .AddField("Race", BasicInfo.Race, true)
                 .AddField("HP", (BasicInfo.Health.Current + BasicInfo.Health.Temporary) + " / " + BasicInfo.Health.Max
                             + " (" + (int)((BasicInfo.Health.Current + BasicInfo.Health.Temporary) / (double)BasicInfo.Health.Max * 100) + "%)", true)
-                .AddField("Strength", GetAbilityText(BasicInfo.Strength), true)
-                .AddField("Dexterity", GetAbilityText(BasicInfo.Dexterity), true)
-                .AddField("Constitution", GetAbilityText(BasicInfo.Constitution), true)
-                .AddField("Intelligence", GetAbilityText(BasicInfo.Intelligence), true)
-                .AddField("Wisdom", GetAbilityText(BasicInfo.Wisdom), true)
-                .AddField("Charisma", GetAbilityText(BasicInfo.Charisma), true)
+                .AddField("Strength", GetAbilityText(DnDAbilityScores.Strength), true)
+                .AddField("Dexterity", GetAbilityText(DnDAbilityScores.Dexterity), true)
+                .AddField("Constitution", GetAbilityText(DnDAbilityScores.Constitution), true)
+                .AddField("Intelligence", GetAbilityText(DnDAbilityScores.Intelligence), true)
+                .AddField("Wisdom", GetAbilityText(DnDAbilityScores.Wisdom), true)
+                .AddField("Charisma", GetAbilityText(DnDAbilityScores.Charisma), true)
                 .WithFooter(LastKnownCampaign != null ? "This character is currently part of the campaign: " + LastKnownCampaign
                             : "This character is not currently part of any campaign.");
             if (BasicInfo.Appearance.Image != null)
             {
-                builder.WithImageUrl(BasicInfo.Appearance.Image);
+                builder.WithThumbnailUrl(BasicInfo.Appearance.Image);
             }
             return builder.Build();
         }
 
-        private static string GetAbilityText(int score)
+        public int GetSkillMod(DnDCharacterSkills skill)
         {
-            int mod = ((score / 2) - 5);
-            return score + " (" + (mod > 0 ? "+" : "") + mod + ")";
+            int mod = BasicInfo.GetAbilityMod(DnDSkillHelper.GetAttachedAbility(skill));
+            if (BasicInfo.SkillProficiencies.Contains(skill))
+            {
+                mod += ProficiencyBonus;
+            }
+            return mod;
         }
+
+        private string GetAbilityText(DnDAbilityScores ability)
+        {
+            int mod = BasicInfo.GetAbilityMod(ability);
+            return BasicInfo.GetAbilityScore(ability) + " (" + (mod > 0 ? "+" : "") + mod + ")";
+        }
+
+        internal bool Migrated = false;
     }
 
     public struct DnDPlayerLevel

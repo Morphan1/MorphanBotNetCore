@@ -12,10 +12,6 @@ namespace MorphanBotNetCore.Games.DnD
 
         public bool HeavyArmor { get; set; }
 
-        public List<DnDAbilityModifier> AttributeMods { get; set; }
-
-        public List<DnDSkillModifier> SkillMods { get; set; }
-
         public int AttackBonus { get; set; }
 
         public string Damage { get; set; }
