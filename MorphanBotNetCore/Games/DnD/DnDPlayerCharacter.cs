@@ -48,6 +48,8 @@ namespace MorphanBotNetCore.Games.DnD
                 .AddField("Controlled By", ControlledBy != 0UL ? $"<@{ControlledBy}>" : "Nobody", true)
                 .AddField("Alive", Alive ? "Yes" : "No", true)
                 .AddField("Class", BasicInfo.Class, true)
+                .AddField("Proficiency Bonus", ProficiencyBonus.ShowSign(), true)
+                .AddField("Total Level", Level.Current, true)
                 .AddField("Race", BasicInfo.Race, true)
                 .AddField("HP", (BasicInfo.Health.Current + BasicInfo.Health.Temporary) + " / " + BasicInfo.Health.Max
                             + " (" + (int)((BasicInfo.Health.Current + BasicInfo.Health.Temporary) / (double)BasicInfo.Health.Max * 100) + "%)", true)
@@ -79,7 +81,7 @@ namespace MorphanBotNetCore.Games.DnD
         private string GetAbilityText(DnDAbilityScores ability)
         {
             int mod = BasicInfo.GetAbilityMod(ability);
-            return BasicInfo.GetAbilityScore(ability) + " (" + (mod > 0 ? "+" : "") + mod + ")";
+            return BasicInfo.GetAbilityScore(ability) + " (" + mod.ShowSign() + ")";
         }
 
         internal bool Migrated = false;
