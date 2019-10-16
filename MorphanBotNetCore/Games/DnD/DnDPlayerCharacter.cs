@@ -21,7 +21,17 @@ namespace MorphanBotNetCore.Games.DnD
 
         public DnDPlayerLevel Level { get; set; }
 
-        public int ProficiencyBonus { get; set; }
+        public int ProficiencyBonus
+        {
+            get
+            {
+                return (int)Math.Ceiling(Level.Current / 4.0) + 1;
+            }
+            set
+            {
+                // do nothing
+            }
+        }
 
         public List<DnDAbilityScores> SaveProficiencies { get; set; }
 
