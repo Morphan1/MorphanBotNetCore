@@ -217,7 +217,7 @@ namespace MorphanBotNetCore.Games.DnD
         [Alias("listamod")]
         public async Task ListAbilityMod(string ability = null, [Remainder] string name = null)
         {
-            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name, false);
             if (player != null)
             {
                 EmbedBuilder builder = new EmbedBuilder();
@@ -311,7 +311,7 @@ namespace MorphanBotNetCore.Games.DnD
         [Alias("listsprof")]
         public async Task ListSkillProficiencies([Remainder] string name = null)
         {
-            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name, false);
             if (player != null)
             {
                 string skills = Utilities.Join(player.BasicInfo.SkillProficiencies.Select((skill) => skill.ToString().ToLowerInvariant()).ToArray(), ", ");
@@ -379,7 +379,7 @@ namespace MorphanBotNetCore.Games.DnD
         [Alias("listsmod")]
         public async Task ListSkillMod(string skillName = null, [Remainder] string name = null)
         {
-            DnDPlayerCharacter player = await GetPlayerOrCurrent(name);
+            DnDPlayerCharacter player = await GetPlayerOrCurrent(name, false);
             if (player != null)
             {
                 EmbedBuilder builder = new EmbedBuilder();
