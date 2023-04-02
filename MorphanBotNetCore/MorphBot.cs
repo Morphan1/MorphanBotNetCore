@@ -32,7 +32,7 @@ namespace MorphanBotNetCore
 
         public async Task StartAsync()
         {
-            PrimaryStorage = new YamlStorage(new UnderscoredNamingConvention());
+            PrimaryStorage = new YamlStorage(UnderscoredNamingConvention.Instance);
             Configuration = PrimaryStorage.Load<BotSettings>("config");
             if (Configuration.Discord == null)
             {
@@ -44,7 +44,10 @@ namespace MorphanBotNetCore
                 Console.WriteLine($"No 'wolfram' key with an app ID in config.{PrimaryStorage.FileExtension}!");
                 return;
             }
-            Client = new DiscordSocketClient();
+            Client = new DiscordSocketClient(new DiscordSocketConfig()
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+            });
             Client.MessageReceived += HandleCommandAsync;
             Commands = new CommandService();
             Games = new GameManager(this);
