@@ -79,7 +79,7 @@ namespace MorphanBotNetCore.Games
         {
             CurrentGame?.UnregisterModules(Bot.Commands);
             CurrentGame = game;
-            CurrentGame.RegisterModules(Bot.Commands, Bot.Services);
+            CurrentGame?.RegisterModules(Bot.Commands, Bot.Services);
         }
 
         public void Save()
@@ -108,9 +108,10 @@ namespace MorphanBotNetCore.Games
 
         private static KeyValuePair<string, Func<IGame>> CreateFactory<T>() where T : IGame, new()
         {
-            Func<IGame> gameFactory = () => new T();
             string key = gameFactory().InternalName;
             return new KeyValuePair<string, Func<IGame>>(key, gameFactory);
+
+            static IGame gameFactory() => new T();
         }
     }
 }

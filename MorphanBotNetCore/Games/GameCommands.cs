@@ -80,5 +80,13 @@ namespace MorphanBotNetCore.Games
                 await ReplyAsync($"No existing game was found with the title: {title}");
             }
         }
+
+        [Command("exitgame")]
+        public async Task ExitGame()
+        {
+            await ReplyAsync("Exiting game...");
+            Games.SetGame(null);
+            await ReplyAsync("Game exited.");
+        }
     }
 }
