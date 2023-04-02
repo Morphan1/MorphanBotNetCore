@@ -68,11 +68,11 @@ namespace MorphanBotNetCore
                     await e.Guild.DefaultChannel.SendMessageAsync("Welcome to " + e.Guild.Name + ", **" + e.Username + "**!");
                 }
             };
-            Client.UserLeft += async (e) =>
+            Client.UserLeft += async (guild, user) =>
             {
-                if (!e.IsBot)
+                if (!user.IsBot)
                 {
-                    await e.Guild.DefaultChannel.SendMessageAsync("**" + e.Username + "** left the server.");
+                    await guild.DefaultChannel.SendMessageAsync("**" + user.Username + "** left the server.");
                 }
             };
 
