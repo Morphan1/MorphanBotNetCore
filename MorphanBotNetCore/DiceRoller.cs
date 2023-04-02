@@ -86,20 +86,29 @@ namespace MorphanBotNetCore
                     input = input.Replace(match.Index, match.Length, final);
                     match = Regex.Match(input, @"(\d+)?d(\d+)");
                 }
-                List<MathOperation> calc = MonkeyMath.Parse(input, out string err);
-                if (err != null)
+                string[] split = input.Split(',', StringSplitOptions.TrimEntries);
+                for (int i = 0; i < split.Length; i++)
                 {
-                    await ReplyAsync("Failed: " + err);
-                    return;
+                    if (!Regex.Match(split[i], @"\d").Success)
+                    {
+                        continue;
+                    }
+                    List<MathOperation> calc = MonkeyMath.Parse(split[i], out string err);
+                    if (err != null)
+                    {
+                        await ReplyAsync("Failed: " + err);
+                        return;
+                    }
+                    if (!MonkeyMath.Verify(calc, MonkeyMath.BaseFunctions, out err))
+                    {
+                        await ReplyAsync("Failed to verify: " + err);
+                        return;
+                    }
+                    double total = await MonkeyMath.CalculateAsync(calc, MonkeyMath.BaseFunctions);
+                    split[i] = total.ToString();
                 }
-                if (!MonkeyMath.Verify(calc, MonkeyMath.BaseFunctions, out err))
-                {
-                    await ReplyAsync("Failed to verify: " + err);
-                    return;
-                }
-                double total = await MonkeyMath.CalculateAsync(calc, MonkeyMath.BaseFunctions);
                 await ReplyAsync("You rolled: " + input);
-                await ReplyAsync("Total roll: " + total);
+                await ReplyAsync("Total roll: " + string.Join(", ", split));
             }
             else
             {
