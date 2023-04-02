@@ -86,9 +86,9 @@ namespace MorphanBotNetCore
             if (socketMessage is SocketUserMessage message && !message.Author.IsBot)
             {
                 int argPos = 0;
-                if (!message.HasStringPrefix("//", ref argPos) && !message.HasStringPrefix("!!", ref argPos)
+                if (!message.HasStringPrefix("//", ref argPos) && !message.HasCharPrefix('.', ref argPos)
                     && !message.HasCharPrefix('/', ref argPos) && !message.HasMentionPrefix(Client.CurrentUser, ref argPos)
-                    && !message.HasCharPrefix('.', ref argPos))
+                    && !message.HasCharPrefix('!', ref argPos) && !message.HasStringPrefix("!!", ref argPos))
                 {
                     return;
                 }
