@@ -84,7 +84,7 @@ namespace MorphanBotNetCore
                     }
                     string final = sb.Length == 0 ? "0" : sb.ToString();
                     input = input.Replace(match.Index, match.Length, final);
-                    match = Regex.Match(input, @"(\d+)?d(\d+)");
+                    match = Regex.Match(input, @"(\d+)?d(\d+)((d|k)(\d+))?");
                 }
                 string[] split = input.Split(',', StringSplitOptions.TrimEntries);
                 for (int i = 0; i < split.Length; i++)
