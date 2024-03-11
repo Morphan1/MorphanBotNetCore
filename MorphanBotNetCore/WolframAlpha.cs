@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,13 +16,15 @@ namespace MorphanBotNetCore
     {
         public static readonly string WOLFRAM_URL = "http://api.wolframalpha.com/v2/";
 
+        private static readonly HttpClient Http = new HttpClient();
+
         public static string AppID;
 
         [Command("search")]
         [Alias("wolfram", "wolf", "wa")]
         public async Task BasicSearch([Remainder] string input)
         {
-            QueryResult output = Query(input);
+            QueryResult output = await Query(input);
             string result = output.Result;
             if (output.Error || !output.Success || result == null)
             {
@@ -44,12 +47,12 @@ namespace MorphanBotNetCore
             }
         }
 
-        public static QueryResult Query(string input)
+        public static async Task<QueryResult> Query(string input)
         {
             string url = WOLFRAM_URL + "query?input=" + Uri.EscapeDataString(input) + "&appid=" + AppID + "&format=plaintext";
-            HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
+            HttpResponseMessage response = await Http.GetAsync(url);
             XmlDocument doc = new XmlDocument();
-            doc.Load(wr.GetResponse().GetResponseStream());
+            doc.Load(await response.Content.ReadAsStreamAsync());
             return new QueryResult(doc);
         }
 
@@ -159,7 +162,7 @@ namespace MorphanBotNetCore
 
             public static string DecodeUnicode(string value)
             {
-                return DECODING_REGEX.Replace(value.Replace(@"\", ""), m => { return ((char)int.Parse(m.Groups["Value"].Value, NumberStyles.HexNumber)).ToString(); }).Replace("\n", " - ");
+                return DECODING_REGEX.Replace(value.Replace(@"\", ""), (m) => ((char)int.Parse(m.Groups["Value"].Value, NumberStyles.HexNumber)).ToString()).Replace("\n", " - ");
             }
 
             private void SetResult(XmlNode pod)
@@ -180,13 +183,13 @@ namespace MorphanBotNetCore
                             continue;
                         }
                         string[] split = substitution.Split('=');
-                        result.Replace(split[0].Replace(" ", ""), split[1].Replace(" ", ""));
+                        result = result.Replace(split[0].Replace(" ", ""), split[1].Replace(" ", ""));
                     }
                     if (result.Contains('='))
                     {
                         string[] split = result.Split('=');
                         Input = split[0].Trim();
-                        result = result.Substring(split[0].Length);
+                        result = result[split[0].Length..];
                     }
                 }
                 Result = result.Trim();

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,6 +16,10 @@ namespace MorphanBotNetCore.Games.DnD
     [DontAutoLoad]
     public class DnDCommands : ModuleBase<SocketCommandContext>
     {
+        private const string MYTH_WEAVERS_SHEET_API = "https://www.myth-weavers.com/api/v1/sheets/sheets/";
+
+        private static readonly HttpClient Http = new HttpClient();
+
         public GameManager Games { get; set; }
 
         public DnDGame CurrentGame => (DnDGame)Games.CurrentGame;
@@ -111,7 +116,7 @@ namespace MorphanBotNetCore.Games.DnD
             else
             {
                 DnDPlayerCharacter old = CurrentGame.GetPlayer(Context.User.Id);
-                string joining = "Joining"; 
+                string joining = "Joining";
                 if (old != null)
                 {
                     joining = "Replacing " + old.Name + " in";
@@ -133,13 +138,8 @@ namespace MorphanBotNetCore.Games.DnD
                 await ReplyAsync("Provided URL is not a MythWeavers sheet.");
                 return;
             }
-            DnDMythWeavers mw;
-            WebRequest wr = WebRequest.Create("https://www.myth-weavers.com/api/v1/sheets/sheets/" + match.Groups[1].Value);
-            using (WebResponse response = wr.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            {
-                mw = Games.Storage.Load<DnDMythWeavers>(stream);
-            }
+            HttpResponseMessage response = await Http.GetAsync(MYTH_WEAVERS_SHEET_API + match.Groups[1].Value);
+            DnDMythWeavers mw = await Utilities.GetObjectFromWebResponse<DnDMythWeavers>(response);
             if (mw.Error || mw.Sheetdata.Private == 1)
             {
                 await ReplyAsync("Error retrieving data. Is the sheet private?");
@@ -234,7 +234,7 @@ namespace MorphanBotNetCore.Games.DnD
                             i = 0;
                             lastAbility = descriptor.AbilityMod.Ability;
                         }
-                        builder.Description += lastAbility.ToString().ToUpper().Substring(0, 3) + " " + (i + 1) + ": "
+                        builder.Description += lastAbility.ToString().ToUpper()[..3] + " " + (i + 1) + ": "
                                             + descriptor.SourceDescription + " (" + descriptor.AbilityMod.Modifier.ShowSign() + ")\n";
                         i++;
                     }
@@ -396,7 +396,7 @@ namespace MorphanBotNetCore.Games.DnD
                             i = 0;
                             lastSkill = descriptor.SkillMod.Skill;
                         }
-                        builder.Description += lastSkill.ToString().ToUpper().Substring(0, 4) + " " + (i + 1) + ": "
+                        builder.Description += lastSkill.ToString().ToUpper()[..4] + " " + (i + 1) + ": "
                                             + descriptor.SourceDescription + " (" + descriptor.SkillMod.Modifier.ShowSign() + ")\n";
                         i++;
                     }
@@ -454,7 +454,7 @@ namespace MorphanBotNetCore.Games.DnD
             ability = ability.ToLowerInvariant();
             foreach (DnDAbilityScores abilityScore in Utilities.GetEnumValues<DnDAbilityScores>())
             {
-                if (ability.StartsWith(abilityScore.ToString().Substring(0, 3).ToLowerInvariant()))
+                if (ability.StartsWith(abilityScore.ToString()[..3].ToLowerInvariant()))
                 {
                     return abilityScore;
                 }
@@ -471,7 +471,7 @@ namespace MorphanBotNetCore.Games.DnD
             skillName = skillName.ToLowerInvariant();
             foreach (DnDCharacterSkills skill in Utilities.GetEnumValues<DnDCharacterSkills>())
             {
-                if (skillName.StartsWith(skill.ToString().Substring(0, 4).ToLowerInvariant()))
+                if (skillName.StartsWith(skill.ToString()[..4].ToLowerInvariant()))
                 {
                     return skill;
                 }

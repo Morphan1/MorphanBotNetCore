@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace MorphanBotNetCore
 
         public static readonly string RANDOM = URBAN_API + "random";
 
+        private static readonly HttpClient Http = new HttpClient();
+
         [Command("urban")]
         public async Task BasicSearch([Remainder] string input)
         {
@@ -27,11 +30,11 @@ namespace MorphanBotNetCore
             UrbanResponse response;
             if (lower == "random")
             {
-                response = Random();
+                response = await Random();
             }
             else
             {
-                response = Search(input);
+                response = await Search(input);
             }
             if (response == null)
             {
@@ -51,20 +54,20 @@ namespace MorphanBotNetCore
             }
         }
 
-        public static UrbanResponse GetUrbanResponse(string url)
+        public static async Task<UrbanResponse> GetUrbanResponse(string url)
         {
-            HttpWebRequest wr = (HttpWebRequest)WebRequest.Create(url);
-            return Utilities.GetObjectFromWebResponse<UrbanResponse>((HttpWebResponse)wr.GetResponse());
+            HttpResponseMessage response = await Http.GetAsync(url);
+            return await Utilities.GetObjectFromWebResponse<UrbanResponse>(response);
         }
 
-        public static UrbanResponse Random()
+        public static async Task<UrbanResponse> Random()
         {
-            return GetUrbanResponse(RANDOM);
+            return await GetUrbanResponse(RANDOM);
         }
 
-        public static UrbanResponse Search(string input)
+        public static async Task<UrbanResponse> Search(string input)
         {
-            return GetUrbanResponse(DEFINE_TERM + Uri.EscapeDataString(input));
+            return await GetUrbanResponse(DEFINE_TERM + Uri.EscapeDataString(input));
         }
     }
 

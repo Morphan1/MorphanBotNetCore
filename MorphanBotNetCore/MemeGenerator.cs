@@ -33,7 +33,7 @@ namespace MorphanBotNetCore
                         imageName = file;
                         break;
                     }
-                    sb.Append(", ").Append(lower.Substring(MemeFolder.Length).Replace(".jpg", ""));
+                    sb.Append(", ").Append(lower[MemeFolder.Length..].Replace(".jpg", ""));
                 }
                 if (!exists)
                 {

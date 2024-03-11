@@ -47,7 +47,7 @@ namespace MorphanBotNetCore
                     StringBuilder sb = new StringBuilder();
                     if (dice > 1 || dropCount > 0)
                     {
-                        sb.Append("(");
+                        sb.Append('(');
                     }
                     for (int i = 0; i < dice; i++)
                     {
@@ -80,7 +80,7 @@ namespace MorphanBotNetCore
                     }
                     if (dice > 1 || dropCount > 0)
                     {
-                        sb.Append(")");
+                        sb.Append(')');
                     }
                     string final = sb.Length == 0 ? "0" : sb.ToString();
                     input = input.Replace(match.Index, match.Length, final);

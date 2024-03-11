@@ -12,4 +12,8 @@
     <PackageReference Include="YamlDotNet" Version="13.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Drawing.EnableUnixSupport" value="true" />
+  </ItemGroup>
+
 </Project>

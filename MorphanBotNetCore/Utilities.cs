@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,10 +38,10 @@ namespace MorphanBotNetCore
             return outp.ToString();
         }
 
-        public static T GetObjectFromWebResponse<T>(HttpWebResponse response)
+        public static async Task<T> GetObjectFromWebResponse<T>(HttpResponseMessage response)
         {
             DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T));
-            return (T)ser.ReadObject(response.GetResponseStream());
+            return (T)ser.ReadObject(await response.Content.ReadAsStreamAsync());
         }
 
         public static IEnumerable<T> GetEnumValues<T>() where T : Enum

@@ -51,21 +51,21 @@ namespace MorphanBotNetCore.Games.DnD
 
         public List<string> Languages { get; set; }
 
-        public int GetAbilityScore(DnDAbilityScores ability)
+        public readonly int GetAbilityScore(DnDAbilityScores ability)
         {
-            switch (ability)
+            return ability switch
             {
-                case DnDAbilityScores.Strength: return Strength;
-                case DnDAbilityScores.Dexterity: return Dexterity;
-                case DnDAbilityScores.Constitution: return Constitution;
-                case DnDAbilityScores.Intelligence: return Intelligence;
-                case DnDAbilityScores.Wisdom: return Wisdom;
-                case DnDAbilityScores.Charisma: return Charisma;
-            }
-            return 0;
+                DnDAbilityScores.Strength => Strength,
+                DnDAbilityScores.Dexterity => Dexterity,
+                DnDAbilityScores.Constitution => Constitution,
+                DnDAbilityScores.Intelligence => Intelligence,
+                DnDAbilityScores.Wisdom => Wisdom,
+                DnDAbilityScores.Charisma => Charisma,
+                _ => throw new InvalidOperationException($"Invalid ability score: {ability}"),
+            };
         }
 
-        public int GetAbilityMod(DnDAbilityScores ability)
+        public readonly int GetAbilityMod(DnDAbilityScores ability)
         {
             int totalMod = ((GetAbilityScore(ability) / 2) - 5);
             totalMod += AbilityMods.Where((mod) => mod.AbilityMod.Ability == ability).Sum((mod) => mod.AbilityMod.Modifier);

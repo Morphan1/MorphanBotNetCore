@@ -29,7 +29,7 @@ namespace MorphanBotNetCore.Games.DnD
                     },
                     Inventory = new DnDInventory()
                     {
-                        Equipped = ParseBool(data.HeavyArmor) ? UnknownHeavyItem : EmptyItems,
+                        Equipped = ParseBool(data.HeavyArmor) ? UnknownHeavyArmor : EmptyItems,
                         Storage = FilterItems(
                             // Weapons
                             new DnDItem() { Name = data.Weapon1Name, AttackBonus = ParseInt(data.Weapon1Attack), Damage = data.Weapon1Dmg },
@@ -202,7 +202,7 @@ namespace MorphanBotNetCore.Games.DnD
 
         private static bool ParseBool(string s)
         {
-            if (s == null || s == "0")
+            if (s is null or "0")
             {
                 return false;
             }
@@ -235,7 +235,7 @@ namespace MorphanBotNetCore.Games.DnD
             {
                 return null;
             }
-            s = s.ToLowerInvariant().Trim().Substring(0, 3);
+            s = s.ToLowerInvariant().Trim()[..3];
             switch (s)
             {
                 case "str": return DnDAbilityScores.Strength;
@@ -358,6 +358,6 @@ namespace MorphanBotNetCore.Games.DnD
 
         private static List<DnDItem> EmptyItems => new List<DnDItem>();
 
-        private static List<DnDItem> UnknownHeavyItem => new List<DnDItem>() { new DnDItem() { Name = "UNKNOWN HEAVY ARMOR", HeavyArmor = true } };
+        private static List<DnDItem> UnknownHeavyArmor => new List<DnDItem>() { new DnDItem() { Name = "UNKNOWN HEAVY ARMOR", HeavyArmor = true } };
     }
 }

@@ -8,7 +8,7 @@ namespace MorphanBotNetCore.Games.DnD
     {
         // Strength
         Athletics,
-        
+
         // Dexterity
         Acrobatics,
         SleightOfHand,
@@ -46,37 +46,38 @@ namespace MorphanBotNetCore.Games.DnD
     {
         public static DnDAbilityScores GetAttachedAbility(DnDCharacterSkills skill)
         {
-            switch (skill)
+            return skill switch
             {
-                case DnDCharacterSkills.Athletics:
-                    return DnDAbilityScores.Strength;
+                DnDCharacterSkills.Athletics
+                    => DnDAbilityScores.Strength,
 
-                case DnDCharacterSkills.Acrobatics:
-                case DnDCharacterSkills.SleightOfHand:
-                case DnDCharacterSkills.Stealth:
-                    return DnDAbilityScores.Dexterity;
+                DnDCharacterSkills.Acrobatics or
+                DnDCharacterSkills.SleightOfHand or
+                DnDCharacterSkills.Stealth
+                    => DnDAbilityScores.Dexterity,
 
-                case DnDCharacterSkills.Arcana:
-                case DnDCharacterSkills.History:
-                case DnDCharacterSkills.Investigation:
-                case DnDCharacterSkills.Nature:
-                case DnDCharacterSkills.Religion:
-                    return DnDAbilityScores.Intelligence;
+                DnDCharacterSkills.Arcana or
+                DnDCharacterSkills.History or
+                DnDCharacterSkills.Investigation or
+                DnDCharacterSkills.Nature or
+                DnDCharacterSkills.Religion
+                    => DnDAbilityScores.Intelligence,
 
-                case DnDCharacterSkills.AnimalHandling:
-                case DnDCharacterSkills.Insight:
-                case DnDCharacterSkills.Medicine:
-                case DnDCharacterSkills.Perception:
-                case DnDCharacterSkills.Survival:
-                    return DnDAbilityScores.Wisdom;
+                DnDCharacterSkills.AnimalHandling or
+                DnDCharacterSkills.Insight or
+                DnDCharacterSkills.Medicine or
+                DnDCharacterSkills.Perception or
+                DnDCharacterSkills.Survival
+                    => DnDAbilityScores.Wisdom,
 
-                case DnDCharacterSkills.Deception:
-                case DnDCharacterSkills.Intimidation:
-                case DnDCharacterSkills.Performance:
-                case DnDCharacterSkills.Persuasion:
-                    return DnDAbilityScores.Charisma;
-            }
-            return (DnDAbilityScores)(-1);
+                DnDCharacterSkills.Deception or
+                DnDCharacterSkills.Intimidation or
+                DnDCharacterSkills.Performance or
+                DnDCharacterSkills.Persuasion
+                    => DnDAbilityScores.Charisma,
+
+                _ => (DnDAbilityScores)(-1),
+            };
         }
     }
 }
